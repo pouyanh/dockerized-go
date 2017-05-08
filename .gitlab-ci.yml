@@ -1,0 +1,55 @@
+stages:
+  - test
+  - release
+
+functional_test:
+  stage: test
+  image: golang:latest
+  variables:
+    AUTH: gitlab-ci-token:$CI_BUILD_TOKEN
+    GITLAB_URL: gitlab.com
+    GOPATH: /go
+    PROJECT_DIR: $GOPATH/src/$GITLAB_URL/$CI_PROJECT_NAMESPACE
+  script:
+    - git config --global url."http://$AUTH@$GITLAB_URL/".insteadOf "http://$GITLAB_URL/"
+    - mkdir -p $PROJECT_DIR
+    - cd $PROJECT_DIR
+    - git clone $CI_PROJECT_DIR
+    - cd $CI_PROJECT_NAME
+    - go get
+    - go test
+    - GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -a -ldflags '-s' -o $CI_PROJECT_DIR/build/$CI_PROJECT_NAME .
+  artifacts:
+    untracked: true
+
+release_branch:
+  stage: release
+  only:
+    - branches
+  image: docker:latest
+  services:
+    - docker:dind
+  variables:
+    IMAGE_NAME: $CI_REGISTRY_IMAGE:$CI_BUILD_REF_NAME
+  script:
+    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
+    - docker build --pull -t $IMAGE_NAME .
+    - docker push $IMAGE_NAME
+  dependencies:
+    - functional_test
+
+release_latest:
+  stage: release
+  only:
+    - master
+  image: docker:latest
+  services:
+    - docker:dind
+  variables:
+    IMAGE_NAME: $CI_REGISTRY_IMAGE:latest
+  script:
+    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
+    - docker build --pull -t $IMAGE_NAME .
+    - docker push $IMAGE_NAME
+  dependencies:
+    - functional_test
