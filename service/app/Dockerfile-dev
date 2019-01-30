@@ -1,0 +1,6 @@
+FROM golang:latest
+
+MAINTAINER Pouyan Heyratpour <pouyan@janstun.com>
+
+RUN go get -v github.com/codeskyblue/fswatch
+ENTRYPOINT $GOPATH/bin/fswatch

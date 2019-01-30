@@ -1,10 +1,11 @@
-version: '3'
+version: '2.3'
 services:
   app:
+    scale: 5
     build:
       context: .
       dockerfile: Dockerfile-dev
     image: dockerized-go:develop
+    working_dir: /go/src/github.com/pouyanh/dockerized-go
     volumes:
       - $GOPATH/src:/go/src
-    working_dir: /go/src/github.com/pouyanh/dockerized-go
