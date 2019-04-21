@@ -3,9 +3,9 @@ services:
   app:
     scale: 5
     build:
-      context: .
+      context: ./service/app
       dockerfile: Dockerfile-dev
-    image: dockerized-go:develop
+    image: registry.janstun.com/library/golang:develop
     working_dir: /go/src/github.com/pouyanh/dockerized-go
     volumes:
       - $GOPATH/src:/go/src
